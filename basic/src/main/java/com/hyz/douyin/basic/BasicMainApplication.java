@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @MapperScan("com.hyz.douyin.basic.mapper")
 public class BasicMainApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(BasicMainApplication.class, args);
     }

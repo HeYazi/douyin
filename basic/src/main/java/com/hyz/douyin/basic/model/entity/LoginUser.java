@@ -1,25 +1,24 @@
 package com.hyz.douyin.basic.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
- * 用户表
- *
  * @author HYZ
- * @TableName tb_user
- * @date 2023/07/25
+ * @date 2023/7/25 17:14
  */
-@TableName(value ="tb_user")
 @Data
-public class User implements Serializable {
+public class LoginUser implements Serializable {
+    private static final long serialVersionUID = 930378390201801520L;
+
     /**
      * 主键
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -28,27 +27,22 @@ public class User implements Serializable {
     private String username;
 
     /**
-     * 密码
-     */
-    private String password;
-
-    /**
-     * 用户名称 
+     * 用户名称
      */
     private String name;
 
     /**
      * 关注总数
      */
-    private Long followCount;
+    private Integer followCount;
 
     /**
-     *  粉丝总数
+     * 粉丝总数
      */
-    private Long followerCount;
+    private Integer followerCount;
 
     /**
-     * 用户个人页顶部大图 
+     * 用户个人页顶部大图
      */
     private String backgroundImage;
 
@@ -65,12 +59,12 @@ public class User implements Serializable {
     /**
      * 获赞数量
      */
-    private Long totalFavorited;
+    private Integer totalFavorited;
 
     /**
      * 作品数量
      */
-    private Long workCount;
+    private Integer workCount;
 
     /**
      * 创建时间
@@ -81,13 +75,4 @@ public class User implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }
