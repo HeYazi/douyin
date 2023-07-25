@@ -29,7 +29,9 @@ create table if not exists tb_user
     constraint tb_user_id_uindex
         unique (id),
     constraint tb_user_name_uindex
-        unique (name)
+        unique (`name`),
+    constraint tb_user_username_uindex
+        unique (username)
 )
     comment '用户表' collate = utf8mb4_unicode_ci;
 
