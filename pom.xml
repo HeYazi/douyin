@@ -5,7 +5,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>basic</module>
+        <module>user</module>
+        <module>interaction</module>
+        <module>common</module>
     </modules>
 
     <parent>
@@ -123,13 +125,6 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!--jwt依赖-->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -137,6 +132,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.7.2</version>
             </plugin>
         </plugins>
     </build>
