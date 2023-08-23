@@ -35,5 +35,24 @@ create table if not exists tb_user
 )
     comment '用户表' collate = utf8mb4_unicode_ci;
 
+-- 创建库
+create database if not exists db_social;
+
+-- 切换库
+use db_social;
+
+-- 关注表
+create table if not exists tb_follow
+(
+    id             bigint auto_increment comment '主键'
+        primary key,
+    user_id        bigint                             not null comment '用户id',
+    follow_user_id bigint                             not null comment '关注用户id',
+    create_time    datetime default CURRENT_TIMESTAMP not null comment '创建时间'
+)
+    comment '关注表' collate = utf8mb4_unicode_ci;
+
+
+
 
 

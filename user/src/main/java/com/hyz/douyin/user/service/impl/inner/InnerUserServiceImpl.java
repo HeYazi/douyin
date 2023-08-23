@@ -7,24 +7,25 @@ import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.common.service.InnerUserService;
 import com.hyz.douyin.user.model.entity.User;
 import com.hyz.douyin.user.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 内部用户服务impl
- * todo 关注模块还没写
  *
  * @author HYZ
  * @date 2023/8/21 11:22
  */
 @Service
 @DubboService
+@Slf4j
 public class InnerUserServiceImpl implements InnerUserService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -49,7 +50,7 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Map<Long, UserVO> getUserList(List<Long> userIds) {
+    public Map<Long, UserVO> getUserByList(List<Long> userIds) {
         // 传入一个 List 集合，value 为待查询用户的 id
         Map<Long, UserVO> userVOS = new HashMap<>();
         for (Long userId : userIds) {
@@ -82,7 +83,7 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Map<Long, UserVO> getUserList(String token, List<Long> userIds) {
+    public Map<Long, UserVO> getUserByList(String token, List<Long> userIds) {
         // 传入一个 List 集合，value 为待查询用户的 id
         Map<Long, UserVO> userVOS = new HashMap<>();
         for (Long userId : userIds) {
@@ -104,4 +105,48 @@ public class InnerUserServiceImpl implements InnerUserService {
         userService.updateById(user);
         return true;
     }
+
+    @Override
+    @Transactional
+    public Boolean relationAction(Long userId, Long toUserId, Integer type) {
+        // 判断两个用户是否存在
+        User user = userService.getById(userId);
+        User toUser = userService.getById(toUserId);
+        if (!ObjectUtils.allNotNull(user, toUser)) {
+            log.error("关注操作的用户不存在，请检查");
+            return false;
+        }
+        if (type == 1) {
+            // 关注数+1和粉丝数+1
+            user.setFollowCount(user.getFollowCount() + 1);
+            toUser.setFollowerCount(toUser.getFollowerCount() + 1);
+        } else {
+            // 关注数-1和粉丝数-1
+            user.setFollowCount(user.getFollowCount() - 1);
+            toUser.setFollowerCount(toUser.getFollowerCount() - 1);
+        }
+        return userService.updateBatchById(Arrays.asList(user, toUser));
+    }
+
+    @Override
+    public List<UserVO> getFollowUserList(List<Long> userIds) {
+        List<UserVO> list = new ArrayList<>();
+        for (Long userId : userIds) {
+            UserVO userVO = this.getUserVO(userId);
+            userVO.setIsFollow(true);
+            list.add(userVO);
+        }
+        return list;
+    }
+
+    @Override
+    public List<UserVO> getFollowerUserList(List<Long> userIds, String token) {
+        List<UserVO> userVOS = new ArrayList<>();
+        for (Long userId : userIds) {
+            UserVO userVO = getUserVO(token, userId);
+            userVOS.add(userVO);
+        }
+        return userVOS;
+    }
+
 }

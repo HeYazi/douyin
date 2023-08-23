@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: social
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.154.132:3306/db_social
+    username: root
+    password: root
+  # Redis 配置
+  redis:
+    database: 1
+    host: 192.168.154.132
+    port: 6379
+    timeout: 5000
+    password: root
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+  cloud:
+    nacos: # nacos
+      server-addr: 192.168.154.132:8848
+
+server:
+  #  address: 0.0.0.0 # ip
+  port: 9092
+  servlet:
+    context-path: /douyin
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true # 开启下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+
+# 消费者配置
+dubbo:
+  application:
+    name: dubbo-social # 应用名
+  protocol:
+    name: dubbo
+    port: 20880
+  registry:
+    id: nacos-social
+    address: nacos://192.168.154.132:8848 # 注册地址
+  config-center:
+    timeout: 10000

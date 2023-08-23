@@ -9,6 +9,7 @@ import com.hyz.douyin.common.common.ErrorCode;
 import com.hyz.douyin.common.constant.UserConstant;
 import com.hyz.douyin.common.exception.BusinessException;
 import com.hyz.douyin.common.model.vo.UserVO;
+import com.hyz.douyin.common.service.InnerSocialService;
 import com.hyz.douyin.common.utils.ThrowUtils;
 import com.hyz.douyin.user.mapper.UserMapper;
 import com.hyz.douyin.user.model.entity.LoginUser;
@@ -17,6 +18,7 @@ import com.hyz.douyin.user.model.vo.UserLoginVO;
 import com.hyz.douyin.user.model.vo.UserRegisterVO;
 import com.hyz.douyin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,6 +48,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private RedissonClient redissonClient;
+    @DubboReference
+    private InnerSocialService innerSocialService;
 
     private final String SALT = "user";
 
@@ -129,7 +133,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public UserVO userQuery(Long id, Long userId) {
-        //4. todo 在关注表中查询传入的 userId 和自己的 userId 是否有关注关系。目前伪代码默认为 false
 
         //5. 从 redis 中获取被查询用户的 user 的信息
         int retryCount = 0;
@@ -145,7 +148,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 if (id == null) {
                     userVO.setIsFollow(false);
                 } else {
-                    // todo 关注模块，判断是否关注
+                    // 关注模块，判断是否关注
+                    userVO.setIsFollow(innerSocialService.isFollow(id, userId));
                 }
                 return userVO;
             }
@@ -166,12 +170,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 User queryUser = this.getById(userId);
                 ThrowUtils.throwIf(queryUser == null, ErrorCode.USER_OPERATION_ERROR, "用户不存在");
                 userToLoginInRedis(queryUser, USER_INFO_STATE + userId, QUERY_USER_TTL, TimeUnit.MINUTES);
-                // todo 需要调用社交模块的接口，来判断用户是否有关注
                 UserVO userVO = BeanUtil.copyProperties(queryUser, UserVO.class);
                 if (id == null) {
                     userVO.setIsFollow(false);
                 } else {
-                    // todo 关注模块，判断是否关注
+                    // 关注模块，判断是否关注
+                    userVO.setIsFollow(innerSocialService.isFollow(id, userId));
                 }
                 return userVO;
             } finally {

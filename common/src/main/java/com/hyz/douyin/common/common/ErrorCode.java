@@ -29,6 +29,8 @@ public enum ErrorCode {
     ADMIN_USER_OPERATION_ERROR(60001, "管理员用户操作失败"),
 
     INTERACTION_OPERATION_ERROR(70000, "互动模块操作失败"),
+
+    SOCIAL_OPERATION_ERROR(70000, "社交模块操作失败"),
     ;
 
     /**

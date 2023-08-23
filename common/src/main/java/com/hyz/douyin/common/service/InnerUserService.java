@@ -34,7 +34,7 @@ public interface InnerUserService {
      * @param userIds 用户id
      * @return {@link Map}<{@link Long}, {@link UserVO}>
      */
-    Map<Long, UserVO> getUserList(List<Long> userIds);
+    Map<Long, UserVO> getUserByList(List<Long> userIds);
 
     /**
      * 根据 id 和 用户 id、token 获取用户数据
@@ -61,7 +61,7 @@ public interface InnerUserService {
      * @param userIds 用户id
      * @return {@link Map}<{@link Long}, {@link UserVO}>
      */
-    Map<Long, UserVO> getUserList(String token, List<Long> userIds);
+    Map<Long, UserVO> getUserByList(String token, List<Long> userIds);
 
     /**
      * 更新获赞数量
@@ -71,4 +71,30 @@ public interface InnerUserService {
      * @return {@link Boolean}
      */
     Boolean updateTotalFavorited(Integer count, Long userId);
+
+    /**
+     * 用户关系动作（关注与取关）
+     *
+     * @param userId   用户id
+     * @param toUserId 用户id
+     * @param type     类型
+     * @return {@link Boolean}
+     */
+    Boolean relationAction(Long userId, Long toUserId, Integer type);
+
+    /**
+     * 获取关注用户列表
+     *
+     * @param userIds 用户id
+     * @return {@link List}<{@link UserVO}>
+     */
+    List<UserVO> getFollowUserList(List<Long> userIds);
+
+    /**
+     * 获取关注用户列表
+     *
+     * @param userIds 用户id
+     * @return {@link List}<{@link UserVO}>
+     */
+    List<UserVO> getFollowerUserList(List<Long> userIds, String token);
 }
