@@ -3,14 +3,14 @@ package com.hyz.douyin.user.service;
 import com.hyz.douyin.user.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hyz.douyin.user.model.vo.UserLoginVO;
-import com.hyz.douyin.user.model.vo.UserQueryVO;
+import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.user.model.vo.UserRegisterVO;
 
 /**
-* @author heguande
-* @description 针对表【tb_user(用户表)】的数据库操作Service
-* @createDate 2023-07-25 12:43:16
-*/
+ * @author heguande
+ * @description 针对表【tb_user(用户表)】的数据库操作Service
+ * @createDate 2023-07-25 12:43:16
+ */
 public interface UserService extends IService<User> {
 
     /**
@@ -36,7 +36,16 @@ public interface UserService extends IService<User> {
      *
      * @param userId 用户id
      * @param token  令牌
-     * @return {@link UserQueryVO}
+     * @return {@link UserVO}
      */
-    UserQueryVO userQuery(Long userId, String token);
+    UserVO userQuery(Long userId, String token);
+
+    /**
+     * 用户查询
+     *
+     * @param id     查询人id
+     * @param userId 被查人id
+     * @return {@link UserVO}
+     */
+    UserVO userQuery(Long id, Long userId);
 }

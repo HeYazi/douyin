@@ -10,7 +10,6 @@ spring:
       matching-strategy: ant_path_matcher
   # session 配置
   session:
-    # todo 取消注释开启分布式 session（须先配置 Redis）
     # store-type: redis
     # 30 天过期
     timeout: 2592000
@@ -28,13 +27,6 @@ spring:
     timeout: 5000
     password: root
   data:
-#    mongodb:
-#      database: db_interacion
-#      password: root
-#      username: root
-#      host: 192.168.154.132
-#      port: 27017
-#      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
     mongodb:
       database: db_interacion
       authentication-database: admin
@@ -45,6 +37,10 @@ spring:
     multipart:
       # 大小限制
       max-file-size: 10MB
+  cloud:
+    nacos: # nacos
+      server-addr: 192.168.154.132:8848
+
 server:
   #  address: 0.0.0.0 # ip
   port: 9091
@@ -63,3 +59,19 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+
+# 消费者配置
+dubbo:
+  application:
+    name: dubbo-interaction # 应用名
+  protocol:
+    name: dubbo
+    port: 20880
+  registry:
+    id: nacos-interaction
+    address: nacos://192.168.154.132:8848 # 注册地址
+  config-center:
+    timeout: 10000

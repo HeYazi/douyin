@@ -1,19 +1,17 @@
-package com.hyz.douyin.user;
+package com.hyz.douyin.interaction;
 
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author HYZ
- * @date 2023/7/25 12:12
+ * @date 2023/7/27 18:14
  */
 @SpringBootApplication
-@MapperScan("com.hyz.douyin.user.mapper")
 @EnableDubbo
-public class UserMainApplication {
+public class InteractionMainApplication {
     public static void main(String[] args) {
-        SpringApplication.run(UserMainApplication.class, args);
+        SpringApplication.run(InteractionMainApplication.class, args);
     }
 }

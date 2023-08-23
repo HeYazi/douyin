@@ -8,12 +8,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hyz.douyin.common.common.ErrorCode;
 import com.hyz.douyin.common.constant.UserConstant;
 import com.hyz.douyin.common.exception.BusinessException;
+import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.common.utils.ThrowUtils;
 import com.hyz.douyin.user.mapper.UserMapper;
 import com.hyz.douyin.user.model.entity.LoginUser;
 import com.hyz.douyin.user.model.entity.User;
 import com.hyz.douyin.user.model.vo.UserLoginVO;
-import com.hyz.douyin.user.model.vo.UserQueryVO;
 import com.hyz.douyin.user.model.vo.UserRegisterVO;
 import com.hyz.douyin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +27,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.hyz.douyin.user.common.UserConstant.*;
@@ -119,22 +120,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userLoginVO;
     }
 
+    /**
+     * 用户查询
+     *
+     * @param id     查询人id
+     * @param userId 被查人id
+     * @return {@link UserVO}
+     */
     @Override
-    public UserQueryVO userQuery(Long userId, String token) {
-        // todo 测试
-        // 2. Token 在 redis 中判断是否存在
-        Map<Object, Object> loginUserMap = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-        if (loginUserMap.isEmpty()) {
-            //  1. 不存在则抛出异常
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        //3. 从 redis 中获取查询用户的 user 信息
-        LoginUser loginUser = BeanUtil.fillBeanWithMap(loginUserMap, new LoginUser(), false);
-
+    public UserVO userQuery(Long id, Long userId) {
         //4. todo 在关注表中查询传入的 userId 和自己的 userId 是否有关注关系。目前伪代码默认为 false
 
         //5. 从 redis 中获取被查询用户的 user 的信息
         int retryCount = 0;
+        RLock lock = redissonClient.getLock(USER_INFO_LOCK + userId);
         while (retryCount < 3) {
             Map<Object, Object> queryLoginUserMap = stringRedisTemplate.opsForHash().entries(USER_INFO_STATE + userId);
             if (!queryLoginUserMap.isEmpty()) {
@@ -142,12 +141,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 // 缓存加时
                 stringRedisTemplate.expire(USER_INFO_STATE + userId, QUERY_USER_TTL, TimeUnit.MINUTES);
                 LoginUser queryLoginUser = BeanUtil.fillBeanWithMap(queryLoginUserMap, new LoginUser(), false);
-                UserQueryVO userQueryVO = BeanUtil.copyProperties(queryLoginUser, UserQueryVO.class);
-                userQueryVO.setIsFollow(false);
-                return userQueryVO;
+                UserVO userVO = BeanUtil.copyProperties(queryLoginUser, UserVO.class);
+                if (id == null) {
+                    userVO.setIsFollow(false);
+                } else {
+                    // todo 关注模块，判断是否关注
+                }
+                return userVO;
             }
             //6. 用户信息不存在则竞争获锁
-            RLock lock = redissonClient.getLock(USER_INFO_LOCK + userId);
             boolean b = lock.tryLock();
             if (!b) {
                 // 失败则休眠 1s 后再次去 redis 查询，依然不存在则重复步骤6
@@ -164,14 +166,40 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 User queryUser = this.getById(userId);
                 ThrowUtils.throwIf(queryUser == null, ErrorCode.USER_OPERATION_ERROR, "用户不存在");
                 userToLoginInRedis(queryUser, USER_INFO_STATE + userId, QUERY_USER_TTL, TimeUnit.MINUTES);
-                UserQueryVO userQueryVO = BeanUtil.copyProperties(queryUser, UserQueryVO.class);
-                userQueryVO.setIsFollow(false);
-                return userQueryVO;
+                // todo 需要调用社交模块的接口，来判断用户是否有关注
+                UserVO userVO = BeanUtil.copyProperties(queryUser, UserVO.class);
+                if (id == null) {
+                    userVO.setIsFollow(false);
+                } else {
+                    // todo 关注模块，判断是否关注
+                }
+                return userVO;
             } finally {
                 lock.unlock();
             }
         }
         throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+    }
+
+
+    @Override
+    public UserVO userQuery(Long userId, String token) {
+        // 2. Token 在 redis 中判断是否存在
+        Map<Object, Object> loginUserMap = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
+        if (loginUserMap.isEmpty()) {
+            //  1. 不存在则抛出异常
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        //3. 从 redis 中获取查询用户的 user 信息
+        LoginUser loginUser = BeanUtil.fillBeanWithMap(loginUserMap, new LoginUser(), false);
+
+        if (Objects.equals(userId, loginUser.getId())) {
+            UserVO userVO = BeanUtil.copyProperties(loginUser, UserVO.class);
+            userVO.setIsFollow(true);
+            return userVO;
+        }
+        return userQuery(loginUser.getId(), userId);
+
     }
 
     /**
@@ -201,7 +229,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param timeUnit 时间单位
      */
     private void userToLoginInRedis(User user, String key, Long timeout, TimeUnit timeUnit) {
-
         LoginUser loginUser = BeanUtil.copyProperties(user, LoginUser.class);
         Map<String, Object> map = BeanUtil.beanToMap(loginUser, new HashMap<>(1),
                 CopyOptions.create()
@@ -218,7 +245,3 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         stringRedisTemplate.expire(key, timeout, timeUnit);
     }
 }
-
-
-
-

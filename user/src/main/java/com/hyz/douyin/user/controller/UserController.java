@@ -5,7 +5,7 @@ import com.hyz.douyin.common.exception.BusinessException;
 import com.hyz.douyin.user.model.dto.UserLoginRequest;
 import com.hyz.douyin.user.model.dto.UserRegisterRequest;
 import com.hyz.douyin.user.model.vo.UserLoginVO;
-import com.hyz.douyin.user.model.vo.UserQueryVO;
+import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.user.model.vo.UserRegisterVO;
 import com.hyz.douyin.user.service.UserService;
 import com.hyz.douyin.common.utils.ThrowUtils;
@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping
-    public UserQueryVO userQuery(@RequestParam Long userId, @RequestParam String token) {
+    public UserVO userQuery(@RequestParam Long userId, @RequestParam String token) {
         // 1. 空参判断
         if (userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
