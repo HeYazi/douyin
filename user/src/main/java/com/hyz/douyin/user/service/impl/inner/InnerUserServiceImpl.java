@@ -9,6 +9,7 @@ import com.hyz.douyin.user.model.entity.User;
 import com.hyz.douyin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -72,14 +73,11 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public UserVO getUserVO(String token, Long id) {
-        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-        Long userId;
-        if (entries.isEmpty()) {
-            userId = null;
-        }
-        userId = Long.parseLong((String) entries.get("id"));
-        return userService.userQuery(userId, id);
+    public UserVO getUserVO(String token, Long userId) {
+        String key = UserConstant.USER_LOGIN_STATE + token;
+        String idStr = stringRedisTemplate.opsForValue().get(key);
+        Long id = StringUtils.isBlank(idStr) ? null : Long.parseLong(idStr);
+        return userService.userQuery(id, userId);
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.hyz.douyin.user.model.vo.UserLoginVO;
 import com.hyz.douyin.user.model.vo.UserRegisterVO;
 import com.hyz.douyin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -77,7 +78,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             Long id = user.getId();
             String token = JWTUtil.createToken(USER_TOKEN_MAP, String.valueOf(id).getBytes());
             // 8. 用户信息脱敏保存至 redis 当中。redis 的 key 为 token，value 为 hash 数据结构的 user 信息映射。
-            userToLoginInRedis(user, UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+//            userToLoginInRedis(user, UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+            String key = UserConstant.USER_LOGIN_STATE + token;
+            stringRedisTemplate.opsForValue().set(key, id.toString(), LOGIN_USER_TTL, TimeUnit.MINUTES);
             // 9. 返回 UserRegisterVO
             UserRegisterVO userRegisterVO = new UserRegisterVO();
             userRegisterVO.setUserId(id);
@@ -113,7 +116,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
         } else {
             // 9. 用户存在则信息脱敏，保存在 redis 当中
-            userToLoginInRedis(user, UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+//            userToLoginInRedis(user, UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+            // redis当中存的是userId
+            stringRedisTemplate.opsForValue().set(key, id.toString(), LOGIN_USER_TTL, TimeUnit.MINUTES);
         }
         // 10. 返回 UserLoginVO
         UserLoginVO userLoginVO = new UserLoginVO();
@@ -139,6 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         RLock lock = redissonClient.getLock(USER_INFO_LOCK + userId);
         while (retryCount < 3) {
             Map<Object, Object> queryLoginUserMap = stringRedisTemplate.opsForHash().entries(USER_INFO_STATE + userId);
+            // 判断对应的用户是否有缓存信息
             if (!queryLoginUserMap.isEmpty()) {
                 //  1. 存在则直接返回 UserQueryVO
                 // 缓存加时
@@ -188,22 +194,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public UserVO userQuery(Long userId, String token) {
+        String key = UserConstant.USER_LOGIN_STATE + token;
         // 2. Token 在 redis 中判断是否存在
-        Map<Object, Object> loginUserMap = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-        if (loginUserMap.isEmpty()) {
+        String idStr = stringRedisTemplate.opsForValue().get(key);
+        if (StringUtils.isBlank(idStr)) {
             //  1. 不存在则抛出异常
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        //3. 从 redis 中获取查询用户的 user 信息
-        LoginUser loginUser = BeanUtil.fillBeanWithMap(loginUserMap, new LoginUser(), false);
-
-        if (Objects.equals(userId, loginUser.getId())) {
-            UserVO userVO = BeanUtil.copyProperties(loginUser, UserVO.class);
-            userVO.setIsFollow(true);
-            return userVO;
-        }
-        return userQuery(loginUser.getId(), userId);
-
+        stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        Long id = Long.valueOf(idStr);
+        return userQuery(id, userId);
     }
 
     /**

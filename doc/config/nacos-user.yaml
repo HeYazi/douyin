@@ -1,7 +1,6 @@
+# nacos user 配置文件
+
 spring:
-  application:
-    name: user
-  # 默认 dev 环境
   profiles:
     active: dev
   # 支持 swagger3
@@ -31,9 +30,6 @@ spring:
     multipart:
       # 大小限制
       max-file-size: 10MB
-  cloud:
-    nacos: # nacos
-      server-addr: 192.168.154.132:8848
 
 server:
   #  address: 0.0.0.0 # ip
@@ -58,7 +54,7 @@ mybatis-plus:
 dubbo:
   application:
     name: dubbo-user # 应用名
-#    register-mode: all #provider注册模式，可选值 interface(接口级)、instance(应用级)、all，默认是all(双注册)
+  #    register-mode: all #provider注册模式，可选值 interface(接口级)、instance(应用级)、all，默认是all(双注册)
   protocol:
     name: dubbo # dubbo 协议
     port: 20881 # 协议端口

@@ -12,4 +12,10 @@ public interface UserConstant {
      * 用户登录态键
      */
     String USER_LOGIN_STATE = "user:login:";
+
+    /**
+     * 登录用户ttl
+     */
+    Long LOGIN_USER_TTL = 30L;
+
 }

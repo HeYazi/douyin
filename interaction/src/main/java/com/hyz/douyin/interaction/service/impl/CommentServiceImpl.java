@@ -15,6 +15,7 @@ import com.hyz.douyin.interaction.model.vo.comment.CommentActionVO;
 import com.hyz.douyin.interaction.model.vo.comment.CommentListVO;
 import com.hyz.douyin.interaction.model.vo.comment.CommentVO;
 import com.hyz.douyin.interaction.service.CommentService;
+import jdk.nashorn.internal.runtime.regexp.joni.ast.StringNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -26,7 +27,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.hyz.douyin.common.constant.UserConstant.LOGIN_USER_TTL;
 
 
 /**
@@ -47,16 +51,22 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentActionVO commentAction(CommentActionRequest commentActionRequest) {
         String token = commentActionRequest.getToken();
+        // 用户 TTL 更新
+        String key = UserConstant.USER_LOGIN_STATE + token;
+        String idStr = stringRedisTemplate.opsForValue().get(key);
+        ThrowUtils.throwIf(StringUtils.isBlank(idStr), ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
+        stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
+
         Long videoId = commentActionRequest.getVideoId();
         Integer actionType = commentActionRequest.getActionType();
 
         // 2. 从 redis 中根据对应的 token 获取用户数据，判断用户是否存在
-        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-        if (entries.isEmpty()) {
-            //  1. 不存在则抛出异常
-            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
-        }
-        long userId = Long.parseLong((String) entries.get("id"));
+//        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
+//        if (entries.isEmpty()) {
+//            //  1. 不存在则抛出异常
+//            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
+//        }
+        Long userId = Long.valueOf(idStr);
         if (actionType == 1) {
             // 添加评论
             // 获取评论
@@ -82,12 +92,16 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentListVO commentList(String token, Long videoId) {
         // 2. 获取 userId
-        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-        if (entries.isEmpty()) {
-            //  1. 不存在则抛出异常
-            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
-        }
-        long userId = Long.parseLong((String) entries.get("id"));
+        String key = UserConstant.USER_LOGIN_STATE + token;
+//        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
+//        if (entries.isEmpty()) {
+//            //  1. 不存在则抛出异常
+//            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
+//        }
+//        long userId = Long.parseLong((String) entries.get("id"));
+        ThrowUtils.throwIf(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key)), ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
+
+        stringRedisTemplate.expire(UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
         // 3. 根据 videoId 在 mongo 获取对应的 CommentList 列表
         Criteria criteria = Criteria.where("video_id").is(videoId);
@@ -96,8 +110,8 @@ public class CommentServiceImpl implements CommentService {
         // 4. 根据 videoId 在 redis 获取对应的 CommentList 列表
         Set<String> keys = stringRedisTemplate.keys(CommentConstant.SAVE_COMMENT + videoId + "*");
         if (keys != null) {
-            for (String key : keys) {
-                String commentStr = stringRedisTemplate.opsForValue().get(key);
+            for (String k : keys) {
+                String commentStr = stringRedisTemplate.opsForValue().get(k);
                 Comment comment = JSONUtil.toBean(commentStr, Comment.class);
                 commentList.add(comment);
             }
@@ -144,6 +158,7 @@ public class CommentServiceImpl implements CommentService {
      * @return {@link CommentActionVO}
      */
     private CommentActionVO saveCommentAction(Long userId, Long videoId, String commentText) {
+
         // 2. zset 的构成：key【前缀:视频id:评论id】，value【整个 Comment】、score【时间】
         Comment comment = new Comment();
         comment.setId(IdUtil.getSnowflakeNextId());

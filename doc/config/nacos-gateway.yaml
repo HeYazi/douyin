@@ -1,0 +1,46 @@
+# nacos gateway 配置文件
+
+server:
+  port: 10010
+
+spring:
+  # main:
+  #   web-application-type: reactive
+  gateway:
+    #      discovery:
+    #        locator:
+    #          enabled: true # 开启了会自动匹配路由规则
+    routes:
+      - id: user-service
+        uri: lb://user
+        predicates:
+          - Path=/douyin/user/**
+      - id: interaction-service
+        uri: lb://interaction
+        predicates:
+          - Path=/douyin/favorite/**,/douyin/comment/**
+      - id: social-service
+        uri: lb://social
+        predicates:
+          - Path=/douyin/relation/**
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: fatal # gateway 日志打印级别
+
+dubbo:
+  application:
+    name: dubbo-gateway # 应用名
+  protocol:
+    name: dubbo # dubbo 协议
+    port: 20880 # 协议端口
+  registry:
+    id: nacos-gateway
+    address: nacos://192.168.154.132:8848 # 注册地址
+  config-center:
+    timeout: 50000
+  consumer:
+    check: false

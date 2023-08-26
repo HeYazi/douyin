@@ -1,6 +1,6 @@
+# nacos interaction 配置文件
+
 spring:
-  application:
-    name: user
   # 默认 dev 环境
   profiles:
     active: dev
@@ -26,18 +26,21 @@ spring:
     port: 6379
     timeout: 5000
     password: root
+  data:
+    mongodb:
+      database: db_interacion
+      authentication-database: admin
+      uri: mongodb://root:root@192.168.154.132:27017
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
   # 文件上传
   servlet:
     multipart:
       # 大小限制
       max-file-size: 10MB
-  cloud:
-    nacos: # nacos
-      server-addr: 192.168.154.132:8848
 
 server:
   #  address: 0.0.0.0 # ip
-  port: 9090
+  port: 9091
   servlet:
     context-path: /douyin
     # cookie 30 天过期
@@ -53,17 +56,19 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
 
-
+# 消费者配置
 dubbo:
   application:
-    name: dubbo-user # 应用名
-#    register-mode: all #provider注册模式，可选值 interface(接口级)、instance(应用级)、all，默认是all(双注册)
+    name: dubbo-interaction # 应用名
   protocol:
-    name: dubbo # dubbo 协议
-    port: 20881 # 协议端口
+    name: dubbo
+    port: 20882
   registry:
-    id: nacos-user
+    id: nacos-interaction
     address: nacos://192.168.154.132:8848 # 注册地址
   config-center:
     timeout: 50000

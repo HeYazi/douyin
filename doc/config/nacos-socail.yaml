@@ -1,6 +1,6 @@
+# nacos social 配置文件
+
 spring:
-  application:
-    name: user
   # 默认 dev 环境
   profiles:
     active: dev
@@ -16,7 +16,7 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://192.168.154.132:3306/db_user
+    url: jdbc:mysql://192.168.154.132:3306/db_social
     username: root
     password: root
   # Redis 配置
@@ -31,13 +31,10 @@ spring:
     multipart:
       # 大小限制
       max-file-size: 10MB
-  cloud:
-    nacos: # nacos
-      server-addr: 192.168.154.132:8848
 
 server:
   #  address: 0.0.0.0 # ip
-  port: 9090
+  port: 9092
   servlet:
     context-path: /douyin
     # cookie 30 天过期
@@ -53,17 +50,19 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
 
-
+# 消费者配置
 dubbo:
   application:
-    name: dubbo-user # 应用名
-#    register-mode: all #provider注册模式，可选值 interface(接口级)、instance(应用级)、all，默认是all(双注册)
+    name: dubbo-social # 应用名
   protocol:
-    name: dubbo # dubbo 协议
-    port: 20881 # 协议端口
+    name: dubbo
+    port: 20883
   registry:
-    id: nacos-user
+    id: nacos-social
     address: nacos://192.168.154.132:8848 # 注册地址
   config-center:
     timeout: 50000

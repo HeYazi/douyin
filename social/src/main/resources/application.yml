@@ -63,9 +63,11 @@ dubbo:
     name: dubbo-social # 应用名
   protocol:
     name: dubbo
-    port: 20880
+    port: 20883
   registry:
     id: nacos-social
     address: nacos://192.168.154.132:8848 # 注册地址
   config-center:
-    timeout: 10000
+    timeout: 50000
+  consumer:
+    check: false

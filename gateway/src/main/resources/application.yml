@@ -18,10 +18,14 @@ spring:
           uri: lb://user
           predicates:
             - Path=/douyin/user/**
-        - id: user-service
+        - id: interaction-service
           uri: lb://interaction
           predicates:
             - Path=/douyin/favorite/**,/douyin/comment/**
+        - id: social-service
+          uri: lb://social
+          predicates:
+            - Path=/douyin/relation/**
 
 logging:
   level:
@@ -40,4 +44,6 @@ dubbo:
     id: nacos-gateway
     address: nacos://192.168.154.132:8848 # 注册地址
   config-center:
-    timeout: 10000
+    timeout: 50000
+  consumer:
+    check: false

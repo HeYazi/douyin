@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: user
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.154.132:8848  # 代表服务端的地址
+        enabled: true  #  使用nacos的配置中心配置覆盖本地配置
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml  #  文件后缀名

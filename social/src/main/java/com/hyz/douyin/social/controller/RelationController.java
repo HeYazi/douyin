@@ -37,7 +37,7 @@ public class RelationController {
     }
 
     @GetMapping("/follow/list")
-    public RelationFollowListVO relationFollowList(@RequestParam RelationFollowListRequest relationFollowListRequest) {
+    public RelationFollowListVO relationFollowList(@RequestBody RelationFollowListRequest relationFollowListRequest) {
         Long userId = relationFollowListRequest.getUserId();
         String token = relationFollowListRequest.getToken();
         ThrowUtils.throwIf(StringUtils.isBlank(token) || ObjectUtils.allNull(userId), ErrorCode.PARAMS_ERROR);
@@ -50,9 +50,9 @@ public class RelationController {
     }
 
     @GetMapping("/follower/list")
-    public RelationFollowListVO relationFollowList(@RequestParam RelationFollowerListRequest relationFollowListRequest) {
-        Long userId = relationFollowListRequest.getUserId();
-        String token = relationFollowListRequest.getToken();
+    public RelationFollowListVO relationFollowList(@RequestBody RelationFollowerListRequest relationFollowerListRequest) {
+        Long userId = relationFollowerListRequest.getUserId();
+        String token = relationFollowerListRequest.getToken();
         ThrowUtils.throwIf(StringUtils.isBlank(token) || ObjectUtils.allNull(userId), ErrorCode.PARAMS_ERROR);
         List<UserVO> userList = followService.relationFollowerList(token, userId);
         RelationFollowListVO relationFollowListVO = new RelationFollowListVO();
