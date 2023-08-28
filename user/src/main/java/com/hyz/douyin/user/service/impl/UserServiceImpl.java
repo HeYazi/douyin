@@ -30,7 +30,6 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.hyz.douyin.user.common.UserConstant.*;

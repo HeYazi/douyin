@@ -74,4 +74,6 @@ public class RedisTest {
             throw new BusinessException(ErrorCode.USER_OPERATION_ERROR, "请不要重复登录");
         }
     }
+
+
 }

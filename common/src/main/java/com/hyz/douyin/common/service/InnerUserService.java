@@ -1,6 +1,8 @@
 package com.hyz.douyin.common.service;
 
 import com.hyz.douyin.common.model.vo.UserVO;
+import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
+import org.apache.catalina.User;
 
 import java.util.List;
 import java.util.Map;
@@ -97,4 +99,40 @@ public interface InnerUserService {
      * @return {@link List}<{@link UserVO}>
      */
     List<UserVO> getFollowerUserList(List<Long> userIds, String token);
+
+    /**
+     * 更新用户关注数
+     *
+     * @param userId   用户id
+     * @param constant 常数
+     * @return {@link Boolean}
+     */
+    Boolean updateUserFollowCount(Long userId, Long constant);
+
+    /**
+     * 更新用户粉丝数
+     *
+     * @param userId   用户id
+     * @param constant 常数
+     * @return {@link Boolean}
+     */
+    Boolean updateUserFollowerCount(Long userId, Long constant);
+
+    /**
+     * 更新用户获赞数
+     *
+     * @param userId   用户id
+     * @param constant 常数
+     * @return {@link Boolean}
+     */
+    Boolean updateUserFavoritedCount(Long userId, Long constant);
+
+    /**
+     * 更新用户点赞数
+     *
+     * @param userId   用户id
+     * @param constant 常数
+     * @return {@link Boolean}
+     */
+    Boolean updateUserFavoriteCount(Long userId, Long constant);
 }

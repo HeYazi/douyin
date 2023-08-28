@@ -34,7 +34,7 @@ import static com.hyz.douyin.common.constant.UserConstant.LOGIN_USER_TTL;
 
 
 /**
- * 点赞服务服务实现类
+ * 评论服务服务实现类
  *
  * @author HYZ
  * @date 2023/7/27 21:17
@@ -72,12 +72,14 @@ public class CommentServiceImpl implements CommentService {
             // 获取评论
             String commentText = commentActionRequest.getCommentText();
             ThrowUtils.throwIf(StringUtils.isBlank(commentText), ErrorCode.PARAMS_ERROR);
+            stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
             return saveCommentAction(userId, videoId, commentText);
         } else {
             // 删除评论
             // 获取评论id
             Long commentId = commentActionRequest.getCommentId();
             ThrowUtils.throwIf(commentId == null, ErrorCode.PARAMS_ERROR);
+            stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
             return deleteCommentAction(userId, videoId, commentId);
         }
     }
@@ -93,15 +95,8 @@ public class CommentServiceImpl implements CommentService {
     public CommentListVO commentList(String token, Long videoId) {
         // 2. 获取 userId
         String key = UserConstant.USER_LOGIN_STATE + token;
-//        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(UserConstant.USER_LOGIN_STATE + token);
-//        if (entries.isEmpty()) {
-//            //  1. 不存在则抛出异常
-//            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
-//        }
-//        long userId = Long.parseLong((String) entries.get("id"));
         ThrowUtils.throwIf(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key)), ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
-
-        stringRedisTemplate.expire(UserConstant.USER_LOGIN_STATE + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
         // 3. 根据 videoId 在 mongo 获取对应的 CommentList 列表
         Criteria criteria = Criteria.where("video_id").is(videoId);

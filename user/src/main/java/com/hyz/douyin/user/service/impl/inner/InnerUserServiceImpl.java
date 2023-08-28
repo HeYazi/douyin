@@ -5,6 +5,7 @@ import com.hyz.douyin.common.constant.UserConstant;
 import com.hyz.douyin.common.exception.BusinessException;
 import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.common.service.InnerUserService;
+import com.hyz.douyin.user.mapper.UserMapper;
 import com.hyz.douyin.user.model.entity.User;
 import com.hyz.douyin.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 内部用户服务impl
@@ -32,7 +34,8 @@ public class InnerUserServiceImpl implements InnerUserService {
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private UserService userService;
-
+    @Resource
+    private UserMapper userMapper;
 
     @Override
     public Map<Long, UserVO> getUserMap(Map<Long, Long> map) {
@@ -146,5 +149,48 @@ public class InnerUserServiceImpl implements InnerUserService {
         }
         return userVOS;
     }
+
+    @Override
+    public Boolean updateUserFollowCount(Long userId, Long constant) {
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        User user = userService.getById(userId);
+        user.setFollowCount(user.getFollowCount() + constant);
+        userService.updateById(user);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        return true;
+    }
+
+    @Override
+    public Boolean updateUserFollowerCount(Long userId, Long constant) {
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        User user = userService.getById(userId);
+        user.setFollowCount(user.getFollowerCount() + constant);
+        userService.updateById(user);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        return true;
+    }
+
+    @Override
+    public Boolean updateUserFavoritedCount(Long userId, Long constant) {
+        // todo 完成用户点赞与获赞数据的延迟双删
+        return true;
+    }
+
+    @Override
+    public Boolean updateUserFavoriteCount(Long userId, Long constant) {
+        // todo 完成用户点赞与获赞数据的延迟双删
+        return null;
+    }
+
 
 }
