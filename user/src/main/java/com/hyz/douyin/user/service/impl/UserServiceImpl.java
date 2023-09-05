@@ -137,7 +137,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public UserVO userQuery(Long id, Long userId) {
-
         //5. 从 redis 中获取被查询用户的 user 的信息
         int retryCount = 0;
         RLock lock = redissonClient.getLock(USER_INFO_LOCK + userId);

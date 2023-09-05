@@ -64,6 +64,11 @@ public class LoginUser implements Serializable {
     private Long workCount;
 
     /**
+     * 点赞数量
+     */
+    private Long favoriteCount;
+
+    /**
      * 创建时间
      */
     private Date createTime;

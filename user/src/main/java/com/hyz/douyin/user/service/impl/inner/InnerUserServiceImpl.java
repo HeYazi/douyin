@@ -1,10 +1,12 @@
 package com.hyz.douyin.user.service.impl.inner;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hyz.douyin.common.common.ErrorCode;
 import com.hyz.douyin.common.constant.UserConstant;
 import com.hyz.douyin.common.exception.BusinessException;
 import com.hyz.douyin.common.model.vo.UserVO;
 import com.hyz.douyin.common.service.InnerUserService;
+import com.hyz.douyin.common.utils.ThrowUtils;
 import com.hyz.douyin.user.mapper.UserMapper;
 import com.hyz.douyin.user.model.entity.User;
 import com.hyz.douyin.user.service.UserService;
@@ -95,19 +97,6 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Boolean updateTotalFavorited(Integer count, Long userId) {
-        User user = userService.getById(userId);
-        if (user == null) {
-            throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
-        }
-        Long totalFavorited = user.getTotalFavorited();
-        totalFavorited = totalFavorited + count;
-        user.setTotalFavorited(totalFavorited);
-        userService.updateById(user);
-        return true;
-    }
-
-    @Override
     @Transactional
     public Boolean relationAction(Long userId, Long toUserId, Integer type) {
         // 判断两个用户是否存在
@@ -117,6 +106,9 @@ public class InnerUserServiceImpl implements InnerUserService {
             log.error("关注操作的用户不存在，请检查");
             return false;
         }
+//        ThrowUtils.throwIf(this.updateFollowCount(userId, 1L), ErrorCode.SOCIAL_OPERATION_ERROR, "关注用户模块异常");
+//        ThrowUtils.throwIf(this.updateFollowerCount(toUserId, 1L), ErrorCode.SOCIAL_OPERATION_ERROR, "关注用户模块异常");
+
         if (type == 1) {
             // 关注数+1和粉丝数+1
             user.setFollowCount(user.getFollowCount() + 1);
@@ -151,7 +143,7 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Boolean updateUserFollowCount(Long userId, Long constant) {
+    public Boolean updateFollowCount(Long userId, Long constant) {
         stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
         User user = userService.getById(userId);
         user.setFollowCount(user.getFollowCount() + constant);
@@ -166,10 +158,10 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Boolean updateUserFollowerCount(Long userId, Long constant) {
+    public Boolean updateFollowerCount(Long userId, Long constant) {
         stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
         User user = userService.getById(userId);
-        user.setFollowCount(user.getFollowerCount() + constant);
+        user.setFollowerCount(user.getFollowerCount() + constant);
         userService.updateById(user);
         try {
             TimeUnit.SECONDS.sleep(1);
@@ -181,16 +173,49 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
     @Override
-    public Boolean updateUserFavoritedCount(Long userId, Long constant) {
-        // todo 完成用户点赞与获赞数据的延迟双删
+    public Boolean updateWorkCount(Long userId, Long constant) {
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        User user = userService.getById(userId);
+        user.setWorkCount(user.getWorkCount() + constant);
+        userService.updateById(user);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
         return true;
     }
 
     @Override
-    public Boolean updateUserFavoriteCount(Long userId, Long constant) {
-        // todo 完成用户点赞与获赞数据的延迟双删
-        return null;
+    public Boolean updateFavoriteCount(Long userId, Long constant) {
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        User user = userService.getById(userId);
+        user.setFavoriteCount(user.getFavoriteCount() + constant);
+        userService.updateById(user);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        return true;
     }
 
+
+    @Override
+    public Boolean updateTotalFavorited(Long userId, Long constant) {
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        User user = userService.getById(userId);
+        user.setTotalFavorited(user.getTotalFavorited() + constant);
+        userService.updateById(user);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stringRedisTemplate.delete(com.hyz.douyin.user.common.UserConstant.USER_INFO_STATE + userId);
+        return true;
+    }
 
 }

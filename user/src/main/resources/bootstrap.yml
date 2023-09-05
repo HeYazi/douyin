@@ -1,3 +1,5 @@
+server:
+  address: 0.0.0.0 # 将 ipv6 修改为 ipv4
 spring:
   application:
     name: user
