@@ -39,24 +39,42 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     @Override
     public void relationAction(String token, Long toUserId, Integer actionType) {
         String key = UserConstant.USER_LOGIN_STATE + token;
-
         // Token 判断
-
         String idStr = stringRedisTemplate.opsForValue().get(key);
         ThrowUtils.throwIf(StringUtils.isBlank(idStr), ErrorCode.SOCIAL_OPERATION_ERROR, "您未登录");
         Long userId = Long.valueOf(idStr);
 
+        // 自己与自己不允许关注
+        if (userId.equals(toUserId)) {
+            throw new BusinessException(ErrorCode.SOCIAL_OPERATION_ERROR, "不能自己关注自己哦");
+        }
+
         // 用户 TTL 更新
         stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
-        // 对方用户 id 判断，是否存在。修改对方用户的粉丝数量，修改本用户的关注数量
-        if (!innerUserService.relationAction(userId, toUserId, actionType)) {
-            throw new BusinessException(ErrorCode.SOCIAL_OPERATION_ERROR, "关注操作失败");
+        // 先判断是否存在这条数据，然后根据 actionType 来进行选则
+        QueryWrapper<Follow> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(Follow::getUserId, userId)
+                .eq(Follow::getFollowUserId, toUserId);
+        Follow follow = this.getOne(wrapper);
+        if (actionType == 1) {
+            // 如果是关注操作
+            //
+            //  判断关注关系是否存在，关注数+1，被关注数+1这个操作是否成功
+            if (follow != null||!innerUserService.relationAction(userId, toUserId, actionType)) {
+                throw new BusinessException(ErrorCode.SOCIAL_OPERATION_ERROR, "关注操作失败");
+            }
+            // 生成对应的 Follow，返回结果
+            follow = new Follow();
+            follow.setUserId(userId);
+            follow.setFollowUserId(toUserId);
+            this.save(follow);
+        } else {
+            // 如果是取关操作
+            if (follow == null || !innerUserService.relationAction(userId, toUserId, actionType)) {
+                throw new BusinessException(ErrorCode.SOCIAL_OPERATION_ERROR, "关注操作失败");
+            }
+            this.removeById(follow);
         }
-        // 生成对应的 Follow，返回结果
-        Follow follow = new Follow();
-        follow.setUserId(userId);
-        follow.setFollowUserId(toUserId);
-        this.save(follow);
     }
 
     @Override

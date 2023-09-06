@@ -32,7 +32,6 @@
         <spring-cloud.version>2021.0.4</spring-cloud.version>
         <spring-cloud-alibaba.version>2021.0.4.0</spring-cloud-alibaba.version>
     </properties>
-
     <dependencyManagement>
         <dependencies>
             <!--springCloud-->
@@ -156,15 +155,4 @@
             <optional>true</optional>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.7.2</version>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

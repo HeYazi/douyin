@@ -63,4 +63,9 @@ public class UserVO implements Serializable {
      * 作品数量
      */
     private Long workCount;
+
+    /**
+     * 点赞数量
+     */
+    private Long favoriteCount;
 }

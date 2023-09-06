@@ -1,8 +1,6 @@
 package com.hyz.douyin.common.service;
 
 import com.hyz.douyin.common.model.vo.UserVO;
-import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
-import org.apache.catalina.User;
 
 import java.util.List;
 import java.util.Map;
@@ -65,14 +63,6 @@ public interface InnerUserService {
      */
     Map<Long, UserVO> getUserByList(String token, List<Long> userIds);
 
-    /**
-     * 更新获赞数量
-     *
-     * @param count  数
-     * @param userId 用户id
-     * @return {@link Boolean}
-     */
-    Boolean updateTotalFavorited(Integer count, Long userId);
 
     /**
      * 用户关系动作（关注与取关）
@@ -107,7 +97,7 @@ public interface InnerUserService {
      * @param constant 常数
      * @return {@link Boolean}
      */
-    Boolean updateUserFollowCount(Long userId, Long constant);
+    Boolean updateFollowCount(Long userId, Long constant);
 
     /**
      * 更新用户粉丝数
@@ -116,16 +106,25 @@ public interface InnerUserService {
      * @param constant 常数
      * @return {@link Boolean}
      */
-    Boolean updateUserFollowerCount(Long userId, Long constant);
+    Boolean updateFollowerCount(Long userId, Long constant);
 
     /**
-     * 更新用户获赞数
+     * 更新获赞数量
      *
      * @param userId   用户id
      * @param constant 常数
      * @return {@link Boolean}
      */
-    Boolean updateUserFavoritedCount(Long userId, Long constant);
+    Boolean updateTotalFavorited(Long userId, Long constant);
+
+    /**
+     * 更新用户作品数
+     *
+     * @param userId   用户id
+     * @param constant 常数
+     * @return {@link Boolean}
+     */
+    Boolean updateWorkCount(Long userId, Long constant);
 
     /**
      * 更新用户点赞数
@@ -134,5 +133,5 @@ public interface InnerUserService {
      * @param constant 常数
      * @return {@link Boolean}
      */
-    Boolean updateUserFavoriteCount(Long userId, Long constant);
+    Boolean updateFavoriteCount(Long userId, Long constant);
 }

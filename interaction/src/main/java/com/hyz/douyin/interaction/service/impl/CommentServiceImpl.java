@@ -95,7 +95,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentListVO commentList(String token, Long videoId) {
         // 2. 获取 userId
         String key = UserConstant.USER_LOGIN_STATE + token;
-        ThrowUtils.throwIf(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key)), ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
+        ThrowUtils.throwIf(Boolean.FALSE.equals(stringRedisTemplate.hasKey(key)), ErrorCode.INTERACTION_OPERATION_ERROR, "您未登录");
         stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
 
         // 3. 根据 videoId 在 mongo 获取对应的 CommentList 列表

@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.hyz.douyin.common.common.ErrorCode;
 import com.hyz.douyin.common.exception.BusinessException;
 import com.hyz.douyin.common.service.InnerUserService;
+import com.hyz.douyin.common.utils.ThrowUtils;
 import com.hyz.douyin.interaction.constant.CollectionConstant;
 import com.hyz.douyin.interaction.constant.CommentConstant;
 import com.hyz.douyin.interaction.constant.FavoriteConstant;
@@ -68,14 +69,11 @@ public class IncSyncRedisToMongo {
         if (map != null) {
             for (String mapKey : map.keySet()) {
                 for (String s : map.get(mapKey)) {
-                    // 获取 userId 和 videoId
+                    // 获userId 和 videoId取
                     Long userId = Long.parseLong(mapKey);
                     Long videoId = Long.parseLong(s);
                     // todo 将 videoId 传给视频模块，视频模块返回对应的 userId，下面用模拟数据实现
                     Long videoOwnerId = 1L;
-                    if (!innerUserService.updateTotalFavorited(1, videoOwnerId)) {
-                        throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
-                    }
                     // 先查询判断是否存在对应的数据
                     Criteria criteria = Criteria.where("user_id").is(userId).and("video_id").is(videoId);
                     Favorite one = mongoTemplate.findOne(Query.query(criteria), Favorite.class, CollectionConstant.FAVORITE_COLLECTION_NAME);
@@ -88,7 +86,9 @@ public class IncSyncRedisToMongo {
                         favorite.setUserId(userId);
                         favorite.setVideoId(videoId);
                         list.add(favorite);
-//                        mongoTemplate.save(favorite, FavoriteConstant.FAVORITE_COLLECTION_NAME);
+                        // todo 更新视频发出者的获赞数
+                        ThrowUtils.throwIf(!innerUserService.updateTotalFavorited(videoOwnerId, 1L), ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
+                        ThrowUtils.throwIf(!innerUserService.updateFavoriteCount(userId, 1L), ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
                     }
                     mongoTemplate.insertAll(list);
                 }
@@ -100,25 +100,28 @@ public class IncSyncRedisToMongo {
      * 消赞列表同步到mongo当中
      */
     public void synUnLikeToMongo() {
+        // todo 对用户数据进行操作
         // 从消赞缓存中拿到对应的数据
         Map<String, Set<String>> map = syncCacheToMongo(FavoriteConstant.UNLIKE_STATE);
         if (map != null) {
-            for (String userId : map.keySet()) {
-                Set<String> set = map.get(userId);
-                ArrayList<Long> longs = new ArrayList<>();
+            for (String userIdStr : map.keySet()) {
+                Set<String> set = map.get(userIdStr);
+                ArrayList<Long> userIds = new ArrayList<>();
                 for (String s : set) {
-                    longs.add(Long.parseLong(s));
-                    // todo 将 videoId 传给视频模块，视频模块返回对应的 userId，下面用模拟数据实现
+                    Long userId = Long.valueOf(s);
+                    // 更新点赞者的点赞数
+                    ThrowUtils.throwIf(!innerUserService.updateFavoriteCount(userId, -1L), ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
+                    userIds.add(userId);
+                    // todo 将 videoId 传给视频模块，视频模块返回对应的 userIdStr，下面用模拟数据实现
                     Long videoOwnerId = 1L;
-                    if (!innerUserService.updateTotalFavorited(-1, videoOwnerId)) {
-                        throw new BusinessException(ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
-                    }
+                    // todo 更新视频发出者的获赞数
+                    ThrowUtils.throwIf(!innerUserService.updateTotalFavorited(videoOwnerId, -1L), ErrorCode.INTERACTION_OPERATION_ERROR, "修改用户点赞数的用户不存在");
                 }
                 mongoTemplate.remove(Query.query(
                         Criteria.where("user_id")
-                                .is(Long.parseLong(userId))
+                                .is(Long.parseLong(userIdStr))
                                 .and("video_id")
-                                .in(longs)), Favorite.class);
+                                .in(userIds)), Favorite.class);
             }
         }
     }
@@ -163,7 +166,7 @@ public class IncSyncRedisToMongo {
     /**
      * 每分钟执行一次
      */
-    @Scheduled(fixedRate = 1000 * 6)
+    @Scheduled(fixedRate = 1000 * 10)
     public void run() {
 //        log.info("定时任务启动");
         synLikeToMongo();

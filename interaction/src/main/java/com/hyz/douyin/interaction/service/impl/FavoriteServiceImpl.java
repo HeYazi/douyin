@@ -48,6 +48,8 @@ public class FavoriteServiceImpl implements FavoriteService {
 
         //  1. 不存在则抛出异常
 
+        // 判断是否存在对应的点赞数据
+
         // 4. 判断操作
         if (actionType == 1) {
             // 点赞操作
@@ -55,7 +57,6 @@ public class FavoriteServiceImpl implements FavoriteService {
             stringRedisTemplate.opsForSet().remove(FavoriteConstant.UNLIKE_STATE + userId, videoId.toString());
             // 2. 将对应的 userId 和 videoId 存放于点赞当中。key 为前缀+userId，value 为 videoIds。
             stringRedisTemplate.opsForSet().add(FavoriteConstant.LIKE_STATE + userId, videoId.toString());
-            
         } else {
             // 消赞操作
             // 2. 如果是取消点赞操作
