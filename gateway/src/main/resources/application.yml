@@ -46,4 +46,6 @@ dubbo:
   config-center:
     timeout: 50000
   consumer:
+    timeout: 50000
+    retries: 0
     check: false

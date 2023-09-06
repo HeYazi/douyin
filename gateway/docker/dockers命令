@@ -1,1 +1,7 @@
- docker run -d --name gateway -p 10010:10010 gateway:v0.0.1
+ docker run -d --name douyin-gateway -p 10010:10010 gateway:v0.0.1
+
+  docker run -d --name douyin-interaction -p 9091:9091 interaction:v0.0.1
+
+   docker run -d --name douyin-social -p 9092:9092 social:v0.0.1
+
+    docker run -d --name douyin-user -p 9090:9090 user:v0.0.1

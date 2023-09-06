@@ -1,1 +1,1 @@
- docker run -d --name user -p 9092:9092 social:v0.0.1
+ docker run -d --name social -p 9092:9092 social:v0.0.1

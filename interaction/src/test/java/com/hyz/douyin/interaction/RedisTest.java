@@ -1,25 +1,21 @@
 package com.hyz.douyin.interaction;
 
 import cn.hutool.json.JSONUtil;
-import com.google.gson.Gson;
 import com.hyz.douyin.common.constant.UserConstant;
-import com.hyz.douyin.interaction.constant.CommentConstant;
 import com.hyz.douyin.interaction.model.entity.Comment;
 import com.hyz.douyin.interaction.model.entity.Favorite;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.Resource;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
